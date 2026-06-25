@@ -25,6 +25,7 @@ router.post("/register", authController.register);
 router.post("/login", loginLimiter, authController.login);
 router.get("/me", requireAuth, authController.me);
 router.post("/logout", authController.logout);
+router.put("/profile", requireAuth, authController.updateProfile);
 router.get("/check-email", authController.checkEmail);
 
 module.exports = router;

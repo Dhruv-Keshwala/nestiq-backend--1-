@@ -22,6 +22,9 @@ const LOCK_WINDOW_MIN = parseInt(process.env.LOGIN_RATE_LIMIT_WINDOW_MIN || "15"
 /** Strip fields that should never reach the client. */
 function toPublicUser(user) {
   const { password_hash, failed_login_attempts, locked_until, ...publicFields } = user;
+  if (publicFields.preferences_json && publicFields.preferences_json.city) {
+    publicFields.city = publicFields.preferences_json.city;
+  }
   return publicFields;
 }
 
@@ -163,4 +166,34 @@ const checkEmail = asyncHandler(async (req, res) => {
   res.json({ success: true, data: { available: !existing } });
 });
 
-module.exports = { register, login, me, logout, checkEmail };
+// ── PUT /api/auth/profile ─────────────────────────────────────────
+const updateProfile = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
+  const { name, phone, city, avatar_url } = req.body;
+
+  const user = await userModel.findById(userId);
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found." });
+  }
+
+  const patch = {};
+  if (name !== undefined) patch.name = name.trim();
+  if (phone !== undefined) patch.phone = phone.trim();
+  if (avatar_url !== undefined) patch.avatar_url = avatar_url;
+
+  if (city !== undefined) {
+    const preferences = user.preferences_json || {};
+    preferences.city = city.trim();
+    patch.preferences_json = preferences;
+  }
+
+  const updatedUser = await userModel.update(userId, patch);
+
+  res.json({
+    success: true,
+    message: "Profile updated successfully.",
+    data: { user: toPublicUser(updatedUser) },
+  });
+});
+
+module.exports = { register, login, me, logout, checkEmail, updateProfile };

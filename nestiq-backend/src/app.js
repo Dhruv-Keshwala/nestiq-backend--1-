@@ -10,6 +10,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 
 const authRoutes = require("./routes/authRoutes");
+const interactionRoutes = require("./routes/interactionRoutes");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
@@ -22,7 +23,9 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+// Raised to 10 MB to support Base64-encoded profile photo uploads
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // ── Health check ───────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
@@ -31,6 +34,7 @@ app.get("/api/health", (req, res) => {
 
 // ── Routes ───────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
+app.use("/api/interactions", interactionRoutes);
 
 // ── 404 fallback ─────────────────────────────────────────────────────
 app.use((req, res) => {

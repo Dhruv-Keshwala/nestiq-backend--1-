@@ -63,3 +63,19 @@ DROP TRIGGER IF EXISTS trg_users_updated ON users;
 CREATE TRIGGER trg_users_updated
   BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION update_timestamp();
+
+CREATE TABLE IF NOT EXISTS favorites (
+  favorite_id  UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID          NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  property_id  VARCHAR(50)   NOT NULL,
+  created_at   TIMESTAMP     DEFAULT NOW(),
+  UNIQUE(user_id, property_id)
+);
+
+CREATE TABLE IF NOT EXISTS likes (
+  like_id      UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID          NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  property_id  VARCHAR(50)   NOT NULL,
+  created_at   TIMESTAMP     DEFAULT NOW(),
+  UNIQUE(user_id, property_id)
+);
